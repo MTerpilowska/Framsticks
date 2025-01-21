@@ -1,0 +1,100 @@
+World.wrldsiz = 150;               
+GenePools[0].clear(); 
+Populations[0].clear();  
+
+Simulator.import("encoding_f1_best.gen", 2);  
+
+GenePools[0][7].genotype = "X";  
+
+for (var i = 0; i < 30; i++) {
+    var geno = GenePools[0][i];     
+    var c = Populations[0].add(geno);   
+    var x = 20 + (i % 10) * 9;       
+    var y = 30 + (i / 10) * 20;         
+    c.locationSetBboxCenter(x, y, c.bboxCenter.z); 
+}
+
+function evolve() {
+    var generation = 0;              
+    var maxGenerations = 50;         
+    var populationSize = 30;           
+
+    while (generation < maxGenerations) {
+        var bestCreatures = selectBestCreatures(populationSize);
+
+        for (var i = bestCreatures.length / 2; i < populationSize; i++) {
+            var parent1 = bestCreatures[Math.floor(Math.random() * bestCreatures.length)];
+            var parent2 = bestCreatures[Math.floor(Math.random() * bestCreatures.length)];
+            var child = crossover(parent1, parent2);  
+            mutate(child);                           
+            Populations[0].add(child); 
+        }
+
+        var bestCreature = getBestCreature();
+        Simulator.print("Pokolenie " + generation + " - Najlepszy genotyp: " + bestCreature.genotype);
+
+        generation++;  
+    }
+}
+
+function selectBestCreatures(populationSize) {
+    var bestCreatures = [];
+    for (var i = 0; i < populationSize; i++) {
+        var c = Populations[0][i];
+        var stabilityScore = evaluateStability(c);
+        if (bestCreatures.length < 5) {
+            bestCreatures.push({creature: c, stability: stabilityScore});
+        } else {
+            bestCreatures.push({creature: c, stability: stabilityScore});
+            bestCreatures.sort(function(a, b) { return a.stability - b.stability; });
+            bestCreatures.pop(); // Usuwamy najgorszą jednostkę, zachowujemy tylko 5 najlepszych
+        }
+    }
+    return bestCreatures.map(function(item) { return item.creature; });
+}
+
+function crossover(parent1, parent2) {
+    var geno1 = parent1.genotype;
+    var geno2 = parent2.genotype;
+
+    var crossoverPoint = Math.floor(Math.random() * Math.min(geno1.length, geno2.length));
+    var childGenotype = geno1.substring(0, crossoverPoint) + geno2.substring(crossoverPoint);
+    
+    var childCreature = Populations[0].add(childGenotype);
+    return childCreature;
+}
+
+function mutate(creature) {
+    var geno = creature.genotype;
+    var mutationChance = 0.1; 
+
+    if (Math.random() < mutationChance) {
+        var mutationPoint = Math.floor(Math.random() * geno.length);
+        var mutatedGene = geno[mutationPoint] === "X" ? "Y" : "X";  
+        creature.genotype = geno.substring(0, mutationPoint) + mutatedGene + geno.substring(mutationPoint + 1);
+    }
+}
+
+function evaluateStability(creature) {
+    var stability = 0;
+    stability += Math.abs(creature.position.x);
+    stability += Math.abs(creature.position.y);
+    stability -= Math.abs(creature.orientation.z);
+    return stability;
+}
+
+function getBestCreature() {
+    var bestCreature = null;
+    var bestStability = Infinity;
+    for (var i = 0; i < Populations[0].length; i++) {
+        var creature = Populations[0][i];
+        var stability = evaluateStability(creature);
+        if (stability < bestStability) {
+            bestStability = stability;
+            bestCreature = creature;
+        }
+    }
+    return bestCreature;
+}
+
+evolve();
