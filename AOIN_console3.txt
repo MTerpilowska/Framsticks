@@ -1,0 +1,59 @@
+function optimizeStabilityAndHeight() {
+    var bestFitness = 1e6;                    
+    var bestHeight = -1;                     
+    var bestCreature = null;   
+    var bestGenotype = null; 
+
+    for (var i = 0; i < 30; i++) {
+        var c = Populations[0][i]; 
+       var stabilityScore = evaluateStability(c); 
+
+        var height = c.position.z || 0; // Default to 0 if z is not set
+        Simulator.print("Creature " + i); // Debug print
+
+        // If stability is better, or equally stable but higher
+        if (stabilityScore < bestFitness) { 
+            bestFitness = stabilityScore;
+            bestHeight = height;
+            bestCreature = c;   
+            bestGenotype = c.genotype;
+        } else if (stabilityScore == bestFitness) {
+            if (height > bestHeight) {
+                bestHeight = height;
+                bestCreature = c;
+                bestGenotype = c.genotype;
+            }
+        }
+    }
+
+    Simulator.print(
+        "Najbardziej stabilny i najwyższy genotyp: " + bestGenotype 
+    );
+}
+
+function evaluateStability(creature) {
+    var stability = 0;  
+    stability += Math.abs(creature.position.x);  
+    stability += Math.abs(creature.position.y);  
+    stability -= Math.abs(creature.orientation.z); 
+    
+    Simulator.print("Stability for creature: " + stability + 
+        " (x: " + creature.position.x + 
+        ", y: " + creature.position.y + 
+        ", orientation.z: " + creature.orientation.z + ")"
+    );
+    return stability;   
+}
+
+// Set creature positions and heights during setup
+for (var i = 0; i < 30; i++) {
+    var geno = GenePools[0][i]; 
+    var c = Populations[0].add(geno);
+    var x = 20 + (i % 10) * 9;     
+    var y = 30 + (i / 10) * 20;  
+    var z = 10 + i * 2;  // Example height initialization
+    c.locationSetBboxCenter(x, y, z);
+    Simulator.print("Creature " + i + " initialized at (x: " + x + ", y: " + y + ", z: " + z + ")");
+}
+
+optimizeStabilityAndHeight();
