@@ -1,0 +1,1 @@
+python "C:\Users\majat\OneDrive\Pulpit\Framsticks P\Nowy\AOIN_diff_aproach.py" -path "C:\Users\majat\OneDrive\Pulpit\Framsticks P\Framsticks50" -opt vertpos,velocity,distance -sim "C:\Users\majat\OneDrive\Pulpit\Framsticks P\Nowy\eval-allcriteria.sim"
